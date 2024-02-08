@@ -1,0 +1,17 @@
+{
+  "name": "apolloserver-practice",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.9.4",
+    "@apollo/server": "^4.10.0",
+    "apollo-server-express": "^3.13.0",
+    "graphql": "^16.8.1",
+    "mongoose": "^8.1.1"
+  }
+}
