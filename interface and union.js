@@ -1,19 +1,21 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 const typeDefs=`
-union SearchResult = Book | Author
+union Vehicle = Car | Bike
 
-type Book {
-  title: String!
-}
+  type Car {
+    id: ID!
+    manufacturer: String!
+    model: String!
+    transmission: String!
+  }
 
-type Author {
-  name: String!
-}
-
-type Query {
-  search(contains: String): [SearchResult!]
-}
+  type Bike {
+    id: ID!
+    manufacturer: String!
+    model: String!
+    gears: Int!
+  }
 interface Human {
   id: ID!
   name: String!
@@ -34,9 +36,9 @@ type Women implements Human {
   doc: String
 }
 
-# Define a query to retrieve animals
 type Query {
   humans: [Human!]!
+  vehicles: [Vehicle]
 }
 `
  const Book = [{title:"harry"},
@@ -63,6 +65,18 @@ const resolvers = {
       return null; 
     },
   },
+    Vehicle: {
+      __resolveType(vehicle, context, info) {
+        return vehicle.transmission ? 'Car' : 'Bike';
+      },
+    },
+    Query: {
+      vehicles: () => [
+        { id: '1', manufacturer: 'Toyota', model: 'Camry', transmission: 'Automatic' },
+        { id: '2', manufacturer: 'Honda', model: 'Civic', transmission: 'Manual' },
+        { id: '3', manufacturer: 'Harley-Davidson', model: 'Street 750', gears: 6 },
+      ],
+    },
 };
 
 

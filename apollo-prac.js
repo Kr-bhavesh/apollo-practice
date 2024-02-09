@@ -1,11 +1,5 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
-
-
-
-// A schema is a collection of type definitions (hence "typeDefs")
-// that together define the "shape" of queries that are executed against
-// your data.
 const typeDefs = `
 type Book {
   name:String,
@@ -13,6 +7,8 @@ type Book {
   title: String!
 }
   type Price{
+    old:String @deprecated(reason: "Use newField."),
+    newField:String
     price:Int
   }
   type User{
