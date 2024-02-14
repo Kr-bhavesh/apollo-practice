@@ -1,4 +1,3 @@
-// import {gql} from'@apollo/server'
 const typeDefs=`
 type Expense{
     u_name:String,

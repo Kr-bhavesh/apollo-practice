@@ -1,12 +1,27 @@
 import expense_model from "../models/expense.js";
+import Redis from 'ioredis'
+const redis= new Redis()
 const resolvers = {
     Query:{
-       async allexpense(){
+       async allexpense(parent,args,contextValue){  
         return  await expense_model.find()
-       },
+      },
        async getexpense(parent,args){
         // const {ID} = args
-        return await expense_model.findById(args.id)
+        const cachekey = `user:${args.id}`
+        const cachedData = await redis.get(cachekey)
+        console.log(cachedData);
+        if (cachedData) {
+          // Data found in cache, return it
+          return JSON.parse(cachedData);
+          } else {
+          // Data not found in cache, fetch and store it
+          const userData = await expense_model.findById(args.id)
+          console.log(userData);
+          await redis.set(cachekey, JSON.stringify(userData), 'ex', 3600); // Cache for 1 hour
+          return userData;
+          }
+        // return await expense_model.findById(args.id)
        }
     },
     Mutation:{

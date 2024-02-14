@@ -1,15 +1,31 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
+import { addMocksToSchema } from '@graphql-tools/mock';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import responseCachePlugin from '@apollo/server-plugin-response-cache';
 const typeDefs = `
-type Book {
+type Demo{
+  name:String,
+  value:Int
+}
+enum CacheControlScope {
+  PUBLIC,
+  PRIVATE
+}
+
+directive @cacheControl(
+  maxAge: Int
+  scope: CacheControlScope
+) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
+type Book @cacheControl(maxAge:180) {
   name:String,
   id:String,
   title: String!
 }
-  type Price{
+type Price{
     old:String @deprecated(reason: "Use newField."),
     newField:String
-    price:Int
+    price:Int @cacheControl(maxAge:90)
   }
   type User{
     id:ID!
@@ -21,13 +37,20 @@ type Book {
   
   }
   type Query {
-    price: [Price],
+    price: [Price] @cacheControl(maxAge:90),
     books: [Book],
     uid(id:ID!):User,
     favoriteColor: AllowedColor 
     avatar(borderColor: AllowedColor): String 
+    resolved: String
+    demo:Demo
   }
 `
+const mocks = {
+  Int: () => 6,
+  String: () => 'Hello',
+
+};
 const books = [
     {
       id:'101',
@@ -46,56 +69,23 @@ const price = [
         {price:'200'}
     
 ]
-
-// const dateScalar = new GraphQLScalarType({
-
-//     name: 'Date',
-  
-//     description: 'Date custom scalar type',
-  
-//     serialize(value) {
-  
-//       if (value instanceof Date) {
-  
-//         return value.getTime(); 
-//       }
-  
-//       throw Error('GraphQL Date Scalar serializer expected a `Date` object');
-  
-//     },
-  
-//     parseValue(value) {
-  
-//       if (typeof value === 'number') {
-//         return new Date(value); 
-//       }
-  
-//       throw new Error('GraphQL Date Scalar parser expected a `number`');
-  
-//     },
-  
-//     parseLiteral(ast) {
-  
-//       if (ast.kind === Kind.INT) {
-//         return new Date(parseInt(ast.value, 10));
-  
-//       }
-//       return null;
-  
-//     },
-  
-//   });
 const resolvers = {
     Query: {
       books: () => books,
       price:() => price,
+      resolved: () => 'resolved',
+    
   },
   
 }
 
 const server = new ApolloServer({
-    typeDefs,
-    resolvers,
+  schema: addMocksToSchema({
+  schema: makeExecutableSchema({ typeDefs, resolvers }),
+  mocks,
+  preserveResolvers: true,
+  plugins: [responseCachePlugin()]
+  }),
   });
   
   const { url } = await startStandaloneServer(server, {
