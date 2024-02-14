@@ -21,7 +21,6 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   cache: new InMemoryLRUCache({
-    // ~100MiB
     maxSize: Math.pow(2, 20) * 100,
     // 5 minutes (in seconds)
     ttl: 300,

@@ -1,10 +1,25 @@
 import expense_model from "../models/expense.js";
 import Redis from 'ioredis'
-const redis= new Redis()
+import { configDotenv } from "dotenv";
+configDotenv();
+const redis= new Redis({
+  host:process.env.HOST,
+  port:process.env.REDIS_PORT,
+  password:process.env.PASSWORD
+})
 const resolvers = {
     Query:{
-       async allexpense(parent,args,contextValue){  
-        return  await expense_model.find()
+       async allexpense(parent,args,context){
+        console.log(context,"ee");  
+        if(!context.user)
+        {
+          throw new Error("sorry authentication is required")
+        }
+        try {
+          return  await expense_model.find();
+        } catch (error) {
+           console.log(error); 
+        }
       },
        async getexpense(parent,args){
         // const {ID} = args
